@@ -265,7 +265,7 @@
     });
 
     function parseDevice(ua) {
-      const android = ua.match(/Android[^;]+;\s*([^)]+?)(?:\s*\)|\s*Build\/)/i);
+      const android = ua.match(/Android[^;]*;\s*([^)]+?)(?:\s*\)|\s*Build\/)/i);
       if (android) {
         const parts = android[1].split(";").map(s => s.trim()).filter(Boolean);
         const model = parts.filter(p => !/^(en|de|fr|es|it|pt|ru|ja|ko|zh|ar|hi|bn|pa|ta|te|mr|gu|kn|ml|th|vi|tr|pl|nl|sv|da|fi|nb|cs|hu|ro|uk|el|he|id|ms|tl|sw|ca|eu|gl|af|zu|xh|st|tn|ss|ts|ve|nr|Celtic|U)$/i.test(p)).pop();
