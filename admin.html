@@ -275,6 +275,12 @@
           name += d.model.replace(/[_\s]+/g, " ").trim();
           if (name.length > 2) return name;
         }
+        const fallback = ua.match(/Android[^;]*;\s*([^)]+?)(?:\s*\)|\s*Build\/)/i);
+        if (fallback) {
+          const parts = fallback[1].split(";").map(s => s.trim()).filter(Boolean);
+          const last = parts.pop();
+          if (last && last.length > 2) return last;
+        }
         let osName = os.name || "";
         if (osName === "Windows") osName += " " + (os.version || "");
         if (osName === "Mac OS") osName = "Mac";
