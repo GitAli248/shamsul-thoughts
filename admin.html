@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — shamsul.thoughts</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@2.0.0/src/ua-parser.min.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -265,37 +266,29 @@
     });
 
     function parseDevice(ua) {
-      const android = ua.match(/Android[^;]*;\s*([^)]+?)(?:\s*\)|\s*Build\/)/i);
-      if (android) {
-        const parts = android[1].split(";").map(s => s.trim()).filter(Boolean);
-        const model = parts.filter(p => !/^(en|de|fr|es|it|pt|ru|ja|ko|zh|ar|hi|bn|pa|ta|te|mr|gu|kn|ml|th|vi|tr|pl|nl|sv|da|fi|nb|cs|hu|ro|uk|el|he|id|ms|tl|sw|ca|eu|gl|af|zu|xh|st|tn|ss|ts|ve|nr|Celtic|U)$/i.test(p)).pop();
-        if (model && model.length > 2) return model;
-        const alt = parts.filter(p => p.length > 2).pop();
-        if (alt) return alt;
-        return "Android";
+      try {
+        const parser = new UAParser(ua);
+        const d = parser.getDevice();
+        const os = parser.getOS();
+        if (d.model && d.model.length > 1) {
+          let name = d.vendor ? d.vendor + " " : "";
+          name += d.model;
+          return name;
+        }
+        if (os.name === "Android") return "Android";
+        if (os.name === "iOS") return os.name;
+        return os.name || "Unknown";
+      } catch {
+        return "Unknown";
       }
-
-      if (/Android/.test(ua)) return "Android";
-
-      const iphone = ua.match(/iPhone(\d+,\d+)?/i);
-      if (iphone) return iphone[1] ? "iPhone " + iphone[1] : "iPhone";
-
-      if (ua.includes("iPad")) return "iPad";
-      if (/Mac\b|Macintosh|Mac OS/.test(ua)) return "Mac";
-      const win = ua.match(/Windows NT ([\d.]+)/i);
-      if (win) return "Windows " + win[1];
-      if (ua.includes("CrOS")) return "ChromeOS";
-      if (ua.includes("Linux")) return "Linux";
-      return "Unknown";
     }
 
     function parseBrowser(ua) {
-      if (ua.includes("chrome") && !ua.includes("edg")) return "Chrome";
-      if (ua.includes("firefox")) return "Firefox";
-      if (ua.includes("safari") && !ua.includes("chrome")) return "Safari";
-      if (ua.includes("edg")) return "Edge";
-      if (ua.includes("opera") || ua.includes("opr")) return "Opera";
-      return "";
+      try {
+        return new UAParser(ua).getBrowser().name || "";
+      } catch {
+        return "";
+      }
     }
 
     function formatTime(iso) {
