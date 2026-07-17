@@ -265,10 +265,11 @@
     });
 
     function parseDevice(ua) {
-      const android = ua.match(/Android [\d.]+; ([^;)]+?)(?:\s*Build\/|\))/i);
+      const android = ua.match(/Android[^;]+;\s*([^)]+?)(?:\s*\)|\s*Build\/)/i);
       if (android) {
-        const m = android[1].replace(/[_\s]+/g, " ").trim().replace(/;$/, "");
-        if (m.length > 2) return m;
+        const parts = android[1].split(";").map(s => s.trim()).filter(Boolean);
+        const model = parts.pop();
+        if (model && model.length > 2) return model;
         return "Android";
       }
 
@@ -279,6 +280,7 @@
       if (/Mac\b|Macintosh|Mac OS/.test(ua)) return "Mac";
       const win = ua.match(/Windows NT ([\d.]+)/i);
       if (win) return "Windows " + win[1];
+      if (ua.includes("CrOS")) return "ChromeOS";
       if (ua.includes("Linux")) return "Linux";
       return "Unknown";
     }
