@@ -71,16 +71,6 @@ app.use(async (req, res, next) => {
   next();
 });
 
-app.get("/api/debug-headers", (req, res) => {
-  res.json({
-    "sec-ch-ua-model": req.headers["sec-ch-ua-model"] || "(not sent)",
-    "user-agent": req.headers["user-agent"] || "(missing)",
-    "sec-ch-ua": req.headers["sec-ch-ua"] || "(not sent)",
-    "sec-ch-ua-platform": req.headers["sec-ch-ua-platform"] || "(not sent)",
-    "sec-ch-ua-platform-version": req.headers["sec-ch-ua-platform-version"] || "(not sent)",
-  });
-});
-
 app.use(express.static(__dirname));
 
 app.get("/adminpage", (req, res) => {
