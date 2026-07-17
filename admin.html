@@ -280,6 +280,7 @@
           const parts = fallback[1].split(";").map(s => s.trim()).filter(Boolean);
           const last = parts.pop();
           if (last && last.length > 2) return last;
+          if (ua.includes("Android")) return "Android";
         }
         let osName = os.name || "";
         if (osName === "Windows") osName += " " + (os.version || "");
@@ -323,6 +324,7 @@
           <div>
             <div class="meta" style="margin-bottom:0.15rem;">${date} at ${time}</div>
             <div style="font-weight:500;">${device}${browser ? " · " + browser : ""}</div>
+            <div style="font-size:0.7rem;opacity:0.4;word-break:break-all;margin-top:0.15rem;">${v.ua}</div>
             <div style="font-size:0.95rem;opacity:0.8;word-break:break-all;margin-top:0.15rem;">${v.ip}${v.location ? " · " + v.location : ""}</div>
           </div>
           <div class="actions">
