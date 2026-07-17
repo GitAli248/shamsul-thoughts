@@ -320,10 +320,11 @@
         const { date, time } = formatTime(v.time);
         const device = v.deviceModel || parseDevice(v.ua);
         const browser = parseBrowser(v.ua);
+        const extra = v.deviceInfo ? "title=\"Screen: " + (v.deviceInfo.screen || "?") + " · Cores: " + (v.deviceInfo.cores || "?") + " · RAM: " + (v.deviceInfo.memory || "?") + "GB" + (v.deviceInfo.brands ? " · " + v.deviceInfo.brands : "") + "\"" : "";
         return `<div class="post-item">
           <div>
             <div class="meta" style="margin-bottom:0.15rem;">${date} at ${time}</div>
-            <div style="font-weight:500;">${device}${browser ? " · " + browser : ""}</div>
+            <div style="font-weight:500;" ${extra}>${device}${browser ? " · " + browser : ""}</div>
             <div style="font-size:0.7rem;opacity:0.4;word-break:break-all;margin-top:0.15rem;">${v.ua}</div>
             <div style="font-size:0.95rem;opacity:0.8;word-break:break-all;margin-top:0.15rem;">${v.ip}${v.location ? " · " + v.location : ""}</div>
           </div>

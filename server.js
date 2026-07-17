@@ -147,15 +147,15 @@ app.delete("/api/visits/:index", (req, res) => {
 });
 
 app.post("/api/device-model", (req, res) => {
-  const { model } = req.body;
-  if (!model) return res.status(400).json({ error: "model required" });
+  const { model, platform, platformVersion, uaFullVersion, screen, dpr, cores, memory, brands } = req.body;
   let ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
   if (ip.startsWith("::ffff:")) ip = ip.slice(7);
   else if (ip === "::1") ip = "127.0.0.1";
   const visits = readVisits();
   for (const v of visits) {
     if (v.ip === ip && !v.deviceModel) {
-      v.deviceModel = model;
+      if (model) v.deviceModel = model;
+      v.deviceInfo = { platform, platformVersion, uaFullVersion, screen, dpr, cores, memory, brands };
       break;
     }
   }
