@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — shamsul.thoughts</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cormorant Garamond', serif;
+      background: #3D1520;
+      color: #F0E0CC;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .container { max-width: 640px; margin: 0 auto; }
+    .card {
+      background: rgba(240,224,204,0.05);
+      border: 1px solid rgba(240,224,204,0.08);
+      padding: 1.8rem;
+      border-radius: 2px;
+      margin-bottom: 1.5rem;
+    }
+    h1, h2 { font-weight: 600; }
+    h1 { font-size: 1.6rem; margin-bottom: 1.5rem; letter-spacing: 0.5px; }
+    h2 { font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; opacity: 0.5; margin-bottom: 1rem; }
+    label { display: block; font-weight: 600; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.4rem; opacity: 0.6; }
+    select, textarea, input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 0.7rem;
+      border: 1px solid rgba(240,224,204,0.12);
+      border-radius: 2px;
+      background: rgba(240,224,204,0.04);
+      color: #F0E0CC;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+    select:focus, textarea:focus, input[type="password"]:focus {
+      border-color: rgba(240,224,204,0.3);
+    }
+    select option { background: #3D1520; color: #F0E0CC; }
+    textarea { min-height: 140px; resize: vertical; }
+    button {
+      background: rgba(240,224,204,0.1);
+      color: #F0E0CC;
+      border: 1px solid rgba(240,224,204,0.15);
+      padding: 0.6rem 1.5rem;
+      border-radius: 2px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: 'Cormorant Garamond', serif;
+      transition: all 0.2s;
+    }
+    button:hover { background: rgba(240,224,204,0.15); border-color: rgba(240,224,204,0.25); }
+    button.danger { border-color: rgba(200,80,80,0.4); color: #E8907A; }
+    button.danger:hover { background: rgba(200,80,80,0.15); }
+    .post-item {
+      background: rgba(240,224,204,0.04);
+      border: 1px solid rgba(240,224,204,0.06);
+      padding: 1rem 1.2rem;
+      border-radius: 2px;
+      margin-bottom: 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .post-item .meta {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.35;
+      margin-bottom: 0.3rem;
+    }
+    .post-item .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.3rem;
+    }
+    .badge.thought { background: rgba(240,224,204,0.1); color: rgba(240,224,204,0.6); }
+    .badge.shayari { background: rgba(232,180,130,0.12); color: #E8B882; }
+    .post-item .content { font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; }
+    .post-item .actions { flex-shrink: 0; }
+    .empty { text-align: center; color: rgba(240,224,204,0.3); font-style: italic; padding: 2rem; }
+    .login-box { text-align: center; padding: 4rem 1rem; }
+    .login-box input { max-width: 280px; margin: 1rem auto; display: block; }
+    .pw-wrap { position: relative; max-width: 280px; margin: 1rem auto; }
+    .pw-wrap input { margin: 0; padding-right: 2.5rem; }
+    .pw-wrap .eye {
+      position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%);
+      cursor: pointer; opacity: 0.4; font-size: 1.1rem; user-select: none;
+    }
+    .pw-wrap .eye:hover { opacity: 0.8; }
+    .error { color: #E8907A; font-style: italic; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container" id="admin-panel" style="display:none;">
+    <h1>shamsul.thoughts <span style="font-weight:400;opacity:0.4;font-size:0.9rem;">/ admin</span></h1>
+
+    <div class="card">
+      <h2>New Post</h2>
+      <label for="type">Type</label>
+      <select id="type">
+        <option value="thought">Thought</option>
+        <option value="shayari">Shayari</option>
+      </select>
+
+      <label for="content">Content</label>
+      <textarea id="content" placeholder="Write your thought or shayari here..."></textarea>
+
+      <button onclick="addPost()">Publish</button>
+    </div>
+
+    <div class="card">
+      <h2>Customize Page</h2>
+      <label for="cfg-headerLabel">Header Label</label>
+      <input type="text" id="cfg-headerLabel" />
+
+      <label for="cfg-headerTitle">Header Title (HTML allowed)</label>
+      <input type="text" id="cfg-headerTitle" />
+
+      <label for="cfg-headerTagline">Header Tagline</label>
+      <input type="text" id="cfg-headerTagline" />
+
+      <label for="cfg-footerText">Footer Text (HTML allowed)</label>
+      <input type="text" id="cfg-footerText" />
+
+      <label for="cfg-emptyText">Empty State Text</label>
+      <input type="text" id="cfg-emptyText" />
+
+      <button onclick="saveConfig()">Save Changes</button>
+      <span id="cfg-saved" style="margin-left:1rem;opacity:0.5;display:none;">Saved</span>
+    </div>
+
+    <h2>Published Posts</h2>
+    <div id="posts-list"></div>
+
+    <div style="text-align:right;margin-top:2rem;display:flex;justify-content:flex-end;gap:0.5rem;">
+      <button onclick="logout()" style="border-color:rgba(200,80,80,0.3);color:#E8907A;">Logout</button>
+      <button onclick="toggleReaders()">Readers</button>
+    </div>
+  </div>
+
+  <div class="container" id="readers-panel" style="display:none;">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h2 style="margin:0;">Readers</h2>
+        <button onclick="toggleReaders()">← Back</button>
+      </div>
+      <div id="visits-list"></div>
+      <div style="text-align:right;margin-top:1rem;">
+        <button class="danger" onclick="clearAllVisits()">Delete All</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="login-screen">
+    <div class="card login-box">
+      <h1 style="margin-bottom:0.5rem;">shamsul.thoughts</h1>
+      <p style="opacity:0.4;font-style:italic;margin-bottom:1.5rem;">Enter password to manage posts</p>
+      <div class="pw-wrap">
+        <input type="password" id="password-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkPassword()" />
+        <span class="eye" id="eye-btn" onclick="togglePassword()">&#128065;</span>
+      </div>
+      <button onclick="checkPassword()">Login</button>
+      <div class="error" id="login-error"></div>
+    </div>
+  </div>
+
+  <script>
+    const PASSWORD = "shamsullah123";
+
+    (function checkSession() {
+      if (localStorage.getItem("admin_logged_in") === "true") {
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("admin-panel").style.display = "block";
+        loadPosts();
+        loadConfig();
+      }
+    })();
+
+    function togglePassword() {
+      const input = document.getElementById("password-input");
+      const eye = document.getElementById("eye-btn");
+      if (input.type === "password") {
+        input.type = "text";
+        eye.textContent = "\uD83D\uDE48";
+      } else {
+        input.type = "password";
+        eye.textContent = "\uD83D\uDC41";
+      }
+    }
+
+    function checkPassword() {
+      const input = document.getElementById("password-input").value;
+      if (input === PASSWORD) {
+        localStorage.setItem("admin_logged_in", "true");
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("admin-panel").style.display = "block";
+        loadPosts();
+        loadConfig();
+      } else {
+        document.getElementById("login-error").textContent = "Wrong password.";
+      }
+    }
+
+    async function fetchPosts() {
+      const res = await fetch("/api/posts");
+      return await res.json();
+    }
+
+    async function addPost() {
+      const type = document.getElementById("type").value;
+      const content = document.getElementById("content").value.trim();
+      if (!content) return alert("Write something!");
+      await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, content }),
+      });
+      document.getElementById("content").value = "";
+      loadPosts();
+    }
+
+    async function loadPosts() {
+      const posts = await fetchPosts();
+      const container = document.getElementById("posts-list");
+      if (posts.length === 0) {
+        container.innerHTML = '<div class="empty">No posts yet.</div>';
+        return;
+      }
+      container.innerHTML = posts.map(p => `
+        <div class="post-item" data-post-id="${p.id}">
+          <div>
+            <div class="meta">${p.date}</div>
+            <span class="badge ${p.type}">${p.type}</span>
+            <div class="content">${p.content}</div>
+          </div>
+          <div class="actions">
+            <button class="danger">Delete</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    document.getElementById("posts-list").addEventListener("click", e => {
+      const btn = e.target.closest(".danger");
+      if (!btn) return;
+      const item = btn.closest(".post-item");
+      const id = item.dataset.postId;
+      if (confirm("Delete this post?")) {
+        fetch(`/api/posts/${id}`, { method: "DELETE" }).then(loadPosts);
+      }
+    });
+
+    function parseDevice(ua) {
+      ua = ua.toLowerCase();
+      if (ua.includes("iphone")) return "iPhone";
+      if (ua.includes("ipad")) return "iPad";
+      if (ua.includes("macintosh") || ua.includes("mac os")) return "Mac";
+      if (ua.includes("android")) {
+        const m = ua.match(/sm-[a-z0-9]+|galaxy [a-z0-9]+|pixel [0-9a-z]+|mi [0-9a-z]+|redmi [0-9a-z]+/);
+        if (m) return m[0].replace(/-/g, " ").toUpperCase();
+        return "Android";
+      }
+      if (ua.includes("windows")) return "Windows PC";
+      if (ua.includes("linux")) return "Linux";
+      return "Unknown";
+    }
+
+    function parseBrowser(ua) {
+      if (ua.includes("chrome") && !ua.includes("edg")) return "Chrome";
+      if (ua.includes("firefox")) return "Firefox";
+      if (ua.includes("safari") && !ua.includes("chrome")) return "Safari";
+      if (ua.includes("edg")) return "Edge";
+      if (ua.includes("opera") || ua.includes("opr")) return "Opera";
+      return "";
+    }
+
+    function formatTime(iso) {
+      const d = new Date(iso);
+      const date = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+      const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+      return { date, time };
+    }
+
+    async function loadVisits() {
+      const res = await fetch("/api/visits");
+      const visits = await res.json();
+      const container = document.getElementById("visits-list");
+      if (visits.length === 0) {
+        container.innerHTML = '<div class="empty">No visitors yet.</div>';
+        return;
+      }
+      container.innerHTML = visits.map((v, i) => {
+        const { date, time } = formatTime(v.time);
+        const device = parseDevice(v.ua);
+        const browser = parseBrowser(v.ua);
+        return `<div class="post-item">
+          <div>
+            <div class="meta" style="margin-bottom:0.15rem;">${date} at ${time}</div>
+            <div style="font-weight:500;">${device}${browser ? " · " + browser : ""}</div>
+            <div style="font-size:0.95rem;opacity:0.8;word-break:break-all;margin-top:0.15rem;">${v.ip}${v.location ? " · " + v.location : ""}</div>
+          </div>
+          <div class="actions">
+            <button class="danger" onclick="deleteVisit(${i})">Delete</button>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    async function deleteVisit(index) {
+      if (!confirm("Delete this visit?")) return;
+      await fetch(`/api/visits/${index}`, { method: "DELETE" });
+      loadVisits();
+    }
+
+    async function clearAllVisits() {
+      if (!confirm("Delete all visits?")) return;
+      await fetch("/api/visits/clear");
+      loadVisits();
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch("/api/config");
+        const cfg = await res.json();
+        document.getElementById("cfg-headerLabel").value = cfg.headerLabel || "";
+        document.getElementById("cfg-headerTitle").value = cfg.headerTitle ? cfg.headerTitle.replace(/<[^>]+>/g, "") : "";
+        document.getElementById("cfg-headerTagline").value = cfg.headerTagline || "";
+        document.getElementById("cfg-footerText").value = cfg.footerText ? cfg.footerText.replace(/<[^>]+>/g, "") : "";
+        document.getElementById("cfg-emptyText").value = cfg.emptyText || "";
+      } catch {}
+    }
+
+    async function saveConfig() {
+      const config = {
+        headerLabel: document.getElementById("cfg-headerLabel").value,
+        headerTitle: document.getElementById("cfg-headerTitle").value,
+        headerTagline: document.getElementById("cfg-headerTagline").value,
+        footerText: document.getElementById("cfg-footerText").value,
+        emptyText: document.getElementById("cfg-emptyText").value,
+      };
+      await fetch("/api/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      const el = document.getElementById("cfg-saved");
+      el.style.display = "inline";
+      setTimeout(() => el.style.display = "none", 2000);
+    }
+
+    function logout() {
+      localStorage.removeItem("admin_logged_in");
+      document.getElementById("admin-panel").style.display = "none";
+      document.getElementById("login-screen").style.display = "block";
+      document.getElementById("password-input").value = "";
+    }
+
+    function toggleReaders() {
+      const admin = document.getElementById("admin-panel");
+      const readers = document.getElementById("readers-panel");
+      if (readers.style.display === "none") {
+        admin.style.display = "none";
+        readers.style.display = "block";
+        loadVisits();
+      } else {
+        readers.style.display = "none";
+        admin.style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>

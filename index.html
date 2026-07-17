@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>shamsul.thoughts</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cormorant Garamond', 'Noto Nastaliq Urdu', serif;
+      background: #3D1520;
+      color: #F0E0CC;
+      min-height: 100vh;
+    }
+    header {
+      position: relative;
+      background: #3D1520;
+      color: #F0E0CC;
+      padding: 4rem 1rem 3rem;
+      text-align: center;
+      isolation: isolate;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url('header-bg.jpeg');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.15;
+      z-index: 0;
+    }
+    header > * { position: relative; z-index: 1; }
+    header .label {
+      font-size: 0.7rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 1.2rem;
+    }
+    header h1 {
+      font-size: 3rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      line-height: 1.1;
+    }
+    header h1 em {
+      font-style: italic;
+      font-weight: 400;
+    }
+    header .divider {
+      width: 40px;
+      height: 1px;
+      background: #F0E0CC;
+      opacity: 0.3;
+      margin: 1.2rem auto;
+    }
+    header p {
+      font-size: 1rem;
+      opacity: 0.55;
+      font-style: italic;
+      font-weight: 400;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1.2rem 1rem;
+      background: rgba(61,21,32,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(240,224,204,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    nav button {
+      background: none;
+      border: 1px solid rgba(240,224,204,0.12);
+      padding: 0.4rem 1.4rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: rgba(240,224,204,0.5);
+      font-family: 'Cormorant Garamond', serif;
+      transition: all 0.25s;
+    }
+    nav button:hover { color: #F0E0CC; border-color: rgba(240,224,204,0.3); }
+    nav button.active {
+      background: rgba(240,224,204,0.1);
+      color: #F0E0CC;
+      border-color: rgba(240,224,204,0.25);
+    }
+    main {
+      max-width: 640px;
+      margin: 2.5rem auto;
+      padding: 0 1rem;
+    }
+    .post {
+      background: rgba(240,224,204,0.04);
+      padding: 2rem 1.8rem;
+      border-radius: 2px;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(240,224,204,0.06);
+      transition: background 0.2s;
+    }
+    .post:hover { background: rgba(240,224,204,0.07); }
+    .post .date {
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      opacity: 0.35;
+      margin-bottom: 0.8rem;
+    }
+    .post .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+    .badge.thought { background: rgba(240,224,204,0.1); color: rgba(240,224,204,0.6); }
+    .badge.shayari { background: rgba(232,180,130,0.12); color: #E8B882; }
+    .post .content {
+      font-size: 1.35rem;
+      line-height: 1.7;
+      font-weight: 500;
+      white-space: pre-wrap;
+      color: #F0E0CC;
+    }
+    .post .content:lang(ur) {
+      direction: rtl;
+      text-align: right;
+      font-size: 1.4rem;
+    }
+    .empty {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: rgba(240,224,204,0.3);
+      font-style: italic;
+    }
+    footer {
+      text-align: center;
+      padding: 3rem;
+      color: rgba(240,224,204,0.2);
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="label" id="header-label">a carousel on thoughts that linger</div>
+    <h1 id="header-title">shamsul<em>.thoughts</em></h1>
+    <div class="divider"></div>
+    <p id="header-tagline">words that linger</p>
+  </header>
+
+  <nav>
+    <button class="active" data-filter="all">All</button>
+    <button data-filter="thought">Thoughts</button>
+    <button data-filter="shayari">Shayari</button>
+  </nav>
+
+  <main id="posts-container"></main>
+
+  <footer id="footer-text">shamsul.thoughts &mdash; 2026</footer>
+
+  <script>
+    let posts = [];
+    let config = {};
+
+    const container = document.getElementById("posts-container");
+    const buttons = document.querySelectorAll("nav button");
+    let currentFilter = "all";
+
+    function getEmptyText() {
+      return config.emptyText || "Nothing here yet.";
+    }
+
+    function render() {
+      const filtered = currentFilter === "all"
+        ? posts
+        : posts.filter(p => p.type === currentFilter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty">${getEmptyText()}</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(post => {
+        const isUrdu = /[\u0600-\u06FF]/.test(post.content);
+        return `
+          <div class="post">
+            <div class="date">${post.date}</div>
+            <span class="badge ${post.type}">${post.type}</span>
+            <div class="content" ${isUrdu ? 'lang="ur"' : ""}>${post.content}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        buttons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    async function loadConfig() {
+      try {
+        const res = await fetch("/api/config");
+        config = await res.json();
+        document.getElementById("header-label").textContent = config.headerLabel || "a carousel on thoughts that linger";
+        document.getElementById("header-title").innerHTML = config.headerTitle || "shamsul<em>.thoughts</em>";
+        document.getElementById("header-tagline").textContent = config.headerTagline || "words that linger";
+        document.getElementById("footer-text").innerHTML = config.footerText || "shamsul.thoughts &mdash; 2026";
+      } catch {}
+    }
+
+    async function loadPosts() {
+      try {
+        const res = await fetch("/api/posts");
+        posts = await res.json();
+      } catch {
+        posts = [];
+      }
+      render();
+    }
+
+    loadConfig();
+    loadPosts();
+  </script>
+</body>
+</html>
