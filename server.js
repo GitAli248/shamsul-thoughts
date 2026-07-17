@@ -43,17 +43,25 @@ async function getGeo(ip) {
   }
 }
 
+app.use((req, res, next) => {
+  res.set('Accept-CH', 'Sec-CH-UA-Model, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version');
+  res.set('Critical-CH', 'Sec-CH-UA-Model');
+  next();
+});
+
 app.use(async (req, res, next) => {
   if (req.path === "/" || req.path === "/index.html") {
     let ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
     if (ip.startsWith("::ffff:")) ip = ip.slice(7);
     else if (ip === "::1") ip = "127.0.0.1";
+    let deviceModel = req.headers["sec-ch-ua-model"] || "";
+    if (deviceModel) deviceModel = deviceModel.replace(/"/g, "").trim();
     const visit = {
       ip,
       time: new Date().toISOString(),
       ua: req.headers["user-agent"] || "unknown",
       location: await getGeo(ip),
-      deviceModel: "",
+      deviceModel,
     };
     const visits = readVisits();
     visits.unshift(visit);
@@ -147,15 +155,27 @@ app.delete("/api/visits/:index", (req, res) => {
 });
 
 app.post("/api/device-model", (req, res) => {
-  const { model, platform, platformVersion, uaFullVersion, screen, dpr, cores, memory, brands } = req.body;
+  const body = req.body || {};
   let ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
   if (ip.startsWith("::ffff:")) ip = ip.slice(7);
   else if (ip === "::1") ip = "127.0.0.1";
+  let headerModel = req.headers["sec-ch-ua-model"] || "";
+  if (headerModel) headerModel = headerModel.replace(/"/g, "").trim();
+  const model = headerModel || body.model || "";
   const visits = readVisits();
   for (const v of visits) {
     if (v.ip === ip && !v.deviceModel) {
       if (model) v.deviceModel = model;
-      v.deviceInfo = { platform, platformVersion, uaFullVersion, screen, dpr, cores, memory, brands };
+      v.deviceInfo = {
+        platform: body.platform || "",
+        platformVersion: body.platformVersion || "",
+        screen: body.screen || "",
+        dpr: body.dpr || "",
+        cores: body.cores || "",
+        memory: body.memory || "",
+        brands: body.brands || "",
+        headerModel: headerModel || "",
+      };
       break;
     }
   }

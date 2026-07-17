@@ -255,7 +255,6 @@
         model: "",
         platform: "",
         platformVersion: "",
-        uaFullVersion: "",
         screen: screen.width + "x" + screen.height,
         dpr: window.devicePixelRatio || 1,
         cores: navigator.hardwareConcurrency || 0,
@@ -264,43 +263,81 @@
         ua: navigator.userAgent
       };
 
+      console.log("[DeviceDetect] navigator.userAgentData:", navigator.userAgentData);
+
       try {
         if (navigator.userAgentData) {
-          var ua = navigator.userAgentData;
-          info.platform = ua.platform || "";
-          var hints = await ua.getHighEntropyValues(["model", "platformVersion", "uaFullVersion", "fullVersionList"]);
-          if (hints.model && hints.model.length > 1) info.model = hints.model;
+          var uad = navigator.userAgentData;
+          info.platform = uad.platform || "";
+          var allHints = ["model","platformVersion","uaFullVersion","fullVersionList","architecture","bitness","wow64"];
+          var hints = await uad.getHighEntropyValues(allHints);
+          console.log("[DeviceDetect] getHighEntropyValues result:", hints);
+          if (hints.model && hints.model.length > 1) {
+            info.model = hints.model;
+            console.log("[DeviceDetect] Model from Client Hints:", info.model);
+          }
           if (hints.platformVersion) info.platformVersion = hints.platformVersion;
-          if (hints.uaFullVersion) info.uaFullVersion = hints.uaFullVersion;
           if (hints.fullVersionList) {
             info.brands = hints.fullVersionList.map(function(b) { return b.brand + " " + b.version; }).join(", ");
           }
+        } else {
+          console.log("[DeviceDetect] navigator.userAgentData NOT available");
         }
-      } catch (e) {}
+      } catch (e) {
+        console.log("[DeviceDetect] Error in Client Hints:", e);
+      }
 
       if (!info.model) {
+        console.log("[DeviceDetect] Trying UA fallback...");
         var ua = navigator.userAgent;
+        console.log("[DeviceDetect] Raw UA:", ua);
+
         var m = ua.match(/\(Linux;\s*Android\s*[\d.]+\s*;\s*([^;)]+?)(?:\s*[;)]|\s*Build\/)/i);
         if (m) {
+          console.log("[DeviceDetect] UA regex 1 match:", m[1]);
           var parts = m[1].split(";").map(function(s) { return s.trim(); }).filter(Boolean);
           var last = parts.pop();
-          if (last && last.length > 2 && !/android|build|applewebkit|chrome|safari|mozilla|version/i.test(last)) info.model = last;
+          if (last && last.length > 2 && !/android|build|applewebkit|chrome|safari|mozilla|version/i.test(last)) {
+            info.model = last;
+            console.log("[DeviceDetect] Model from UA regex 1:", info.model);
+          } else if (last) {
+            console.log("[DeviceDetect] UA regex 1 candidate rejected:", last);
+          }
+        } else {
+          console.log("[DeviceDetect] UA regex 1 no match");
         }
         if (!info.model) {
           m = ua.match(/\(Linux;\s*(?:U;)?\s*Android\s*[\d.]+\s*;\s*([^\s;)]+)/i);
           if (m) {
+            console.log("[DeviceDetect] UA regex 2 match:", m[1]);
             var candidate = m[1].replace(/[_\s]+/g, " ").trim();
-            if (candidate.length > 2 && !/android|build|applewebkit|chrome|safari|mozilla|version/i.test(candidate)) info.model = candidate;
+            if (candidate.length > 2 && !/android|build|applewebkit|chrome|safari|mozilla|version/i.test(candidate)) {
+              info.model = candidate;
+              console.log("[DeviceDetect] Model from UA regex 2:", info.model);
+            } else {
+              console.log("[DeviceDetect] UA regex 2 candidate rejected:", candidate);
+            }
+          } else {
+            console.log("[DeviceDetect] UA regex 2 no match");
           }
         }
-        if (!info.model && /Android/.test(ua)) info.model = "Android";
+        if (!info.model && /Android/.test(ua)) {
+          info.model = "Android";
+          console.log("[DeviceDetect] Fallback to Android");
+        }
       }
+
+      console.log("[DeviceDetect] Final info being sent:", JSON.stringify(info));
 
       fetch("/api/device-model", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(info)
-      }).catch(function(){});
+      }).then(function(r) {
+        console.log("[DeviceDetect] POST /api/device-model status:", r.status);
+      }).catch(function(err) {
+        console.log("[DeviceDetect] POST /api/device-model failed:", err);
+      });
     }
 
     collectSignals();
