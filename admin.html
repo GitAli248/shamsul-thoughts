@@ -119,7 +119,11 @@
       <label for="content">Content</label>
       <textarea id="content" placeholder="Write your thought or shayari here..."></textarea>
 
+      <label for="image">Image (optional)</label>
+      <input type="file" id="image-input" accept="image/*" />
+
       <button onclick="addPost()">Publish</button>
+      <span id="publish-status" style="margin-left:1rem;opacity:0.5;display:none;">Uploading...</span>
     </div>
 
     <div class="card">
@@ -181,15 +185,6 @@
   <script>
     const PASSWORD = "shamsullah123";
 
-    (function checkSession() {
-      if (localStorage.getItem("admin_logged_in") === "true") {
-        document.getElementById("login-screen").style.display = "none";
-        document.getElementById("admin-panel").style.display = "block";
-        loadPosts();
-        loadConfig();
-      }
-    })();
-
     function togglePassword() {
       const input = document.getElementById("password-input");
       const eye = document.getElementById("eye-btn");
@@ -205,7 +200,6 @@
     function checkPassword() {
       const input = document.getElementById("password-input").value;
       if (input === PASSWORD) {
-        localStorage.setItem("admin_logged_in", "true");
         document.getElementById("login-screen").style.display = "none";
         document.getElementById("admin-panel").style.display = "block";
         loadPosts();
@@ -224,12 +218,17 @@
       const type = document.getElementById("type").value;
       const content = document.getElementById("content").value.trim();
       if (!content) return alert("Write something!");
-      await fetch("/api/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, content }),
-      });
+      const status = document.getElementById("publish-status");
+      status.style.display = "inline";
+      const fd = new FormData();
+      fd.append("type", type);
+      fd.append("content", content);
+      const fileInput = document.getElementById("image-input");
+      if (fileInput.files[0]) fd.append("image", fileInput.files[0]);
+      await fetch("/api/posts", { method: "POST", body: fd });
       document.getElementById("content").value = "";
+      fileInput.value = "";
+      status.style.display = "none";
       loadPosts();
     }
 
@@ -245,6 +244,7 @@
           <div>
             <div class="meta">${p.date}</div>
             <span class="badge ${p.type}">${p.type}</span>
+            ${p.image ? `<img src="${p.image}" style="max-width:100%;max-height:200px;border-radius:2px;margin-bottom:0.5rem;display:block;" />` : ""}
             <div class="content">${p.content}</div>
           </div>
           <div class="actions">
@@ -265,16 +265,17 @@
     });
 
     function parseDevice(ua) {
-      ua = ua.toLowerCase();
+      const androidModel = ua.match(/android \d+[.\d]*; (.+?)(?:\)|build\/)/i);
+      if (androidModel) return androidModel[1].trim();
+
+      const iPhone = ua.match(/iphone\d+,\d+/i);
+      if (iPhone) return "iPhone " + iPhone[0].replace(/iphone/i, "");
+
       if (ua.includes("iphone")) return "iPhone";
       if (ua.includes("ipad")) return "iPad";
       if (ua.includes("macintosh") || ua.includes("mac os")) return "Mac";
-      if (ua.includes("android")) {
-        const m = ua.match(/sm-[a-z0-9]+|galaxy [a-z0-9]+|pixel [0-9a-z]+|mi [0-9a-z]+|redmi [0-9a-z]+/);
-        if (m) return m[0].replace(/-/g, " ").toUpperCase();
-        return "Android";
-      }
-      if (ua.includes("windows")) return "Windows PC";
+      if (ua.includes("windows nt 10")) return "Windows 10";
+      if (ua.includes("windows nt 11")) return "Windows 11";
       if (ua.includes("linux")) return "Linux";
       return "Unknown";
     }
@@ -363,7 +364,6 @@
     }
 
     function logout() {
-      localStorage.removeItem("admin_logged_in");
       document.getElementById("admin-panel").style.display = "none";
       document.getElementById("login-screen").style.display = "block";
       document.getElementById("password-input").value = "";

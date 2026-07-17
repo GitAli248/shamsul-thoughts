@@ -1,12 +1,25 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME || "drfh2zfu",
+  api_key: process.env.CLOUD_API_KEY || "182364297485335",
+  api_secret: process.env.CLOUD_API_SECRET || "FSX2FaHhhwrUsHhmDmww6vRn51Y",
+});
 
 const app = express();
 const PORT = 3000;
 const POSTS_FILE = path.join(__dirname, "posts.json");
 const VISITS_FILE = path.join(__dirname, "visits.json");
 const CONFIG_FILE = path.join(__dirname, "config.json");
+const TMP_DIR = path.join(__dirname, "tmp");
+
+if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR);
+
+const upload = multer({ dest: TMP_DIR });
 
 app.use(express.json());
 
@@ -83,14 +96,24 @@ app.get("/api/posts", (req, res) => {
   res.json(readPosts());
 });
 
-app.post("/api/posts", (req, res) => {
+app.post("/api/posts", upload.single("image"), async (req, res) => {
   const { type, content } = req.body;
   if (!type || !content) return res.status(400).json({ error: "type and content required" });
+  let imageUrl = null;
+  if (req.file) {
+    try {
+      const result = await cloudinary.uploader.upload(req.file.path, { folder: "shamsul-thoughts" });
+      imageUrl = result.secure_url;
+    } finally {
+      fs.unlink(req.file.path, () => {});
+    }
+  }
   const posts = readPosts();
   const newPost = {
     id: Date.now().toString(),
     type,
     content,
+    image: imageUrl,
     date: new Date().toISOString().slice(0, 10),
   };
   posts.unshift(newPost);

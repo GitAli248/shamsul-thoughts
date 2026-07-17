@@ -140,6 +140,12 @@
       text-align: right;
       font-size: 1.4rem;
     }
+    .post img {
+      max-width: 100%;
+      border-radius: 2px;
+      margin-bottom: 1rem;
+      display: block;
+    }
     .empty {
       text-align: center;
       padding: 4rem 1rem;
@@ -202,6 +208,7 @@
           <div class="post">
             <div class="date">${post.date}</div>
             <span class="badge ${post.type}">${post.type}</span>
+            ${post.image ? `<img src="${post.image}" style="max-width:100%;border-radius:2px;margin-bottom:1rem;display:block;" />` : ""}
             <div class="content" ${isUrdu ? 'lang="ur"' : ""}>${post.content}</div>
           </div>
         `;

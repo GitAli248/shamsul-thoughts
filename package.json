@@ -12,7 +12,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "cloudinary": "^2.10.0",
     "express": "^5.2.1",
-    "heic-convert": "^2.1.0"
+    "multer": "^2.2.0"
   }
 }
