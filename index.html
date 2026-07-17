@@ -247,6 +247,49 @@
 
     loadConfig();
     loadPosts();
-  </script>
+  })();
+
+  (function detectDevice() {
+    var model = "";
+
+    async function fromClientHints() {
+      if (!navigator.userAgentData) return "";
+      try {
+        var hints = await navigator.userAgentData.getHighEntropyValues(["model", "platform", "platformVersion"]);
+        if (hints.model && hints.model.length > 1) return hints.model;
+        if (hints.platform === "Android" && hints.model) return hints.model;
+      } catch {}
+      return "";
+    }
+
+    function fromUA() {
+      var ua = navigator.userAgent;
+      var m = ua.match(/\(Linux;\s*Android\s*[\d.]+\;\s*([^;)]+?)(?:\s*\)|\s*Build\/)/i);
+      if (m) {
+        var parts = m[1].split(";").map(function(s) { return s.trim(); }).filter(Boolean);
+        var last = parts.pop();
+        if (last && last.length > 2 && !/android|build|applewebkit|chrome/i.test(last)) return last;
+      }
+      m = ua.match(/\(Linux;\s*(?:U;)?\s*Android\s*[\d.]+\s*;\s*([^\s;)]+)/i);
+      if (m) {
+        var candidate = m[1].replace(/[_\s]+/g, " ").trim();
+        if (candidate.length > 2 && !/android|build|applewebkit|chrome/i.test(candidate)) return candidate;
+      }
+      return "";
+    }
+
+    (async function() {
+      model = await fromClientHints();
+      if (!model) model = fromUA();
+      if (model) {
+        fetch("/api/device-model", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: model })
+        }).catch(function(){});
+      }
+    })();
+  })();
+</script>
 </body>
 </html>

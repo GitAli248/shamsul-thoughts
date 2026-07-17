@@ -318,7 +318,7 @@
       }
       container.innerHTML = visits.map((v, i) => {
         const { date, time } = formatTime(v.time);
-        const device = parseDevice(v.ua);
+        const device = v.deviceModel || parseDevice(v.ua);
         const browser = parseBrowser(v.ua);
         return `<div class="post-item">
           <div>
